@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 # shellcheck source=https://raw.githubusercontent.com/nafigator/bash-helpers/1.1.4/src/bash-helpers.sh
 if [[ -x /usr/local/lib/bash/includes/bash-helpers.sh ]]; then
   . /usr/local/lib/bash/includes/bash-helpers.sh
@@ -39,9 +41,9 @@ $(bold)Examples:$(clr)
 
     cd /home/user/.wine && setup.sh
 
-  Installation into defined prefix:
+  Installation into defined prefix with specific wine build:
 
-    WINEPREFIX=/home/user/.wine setup.sh
+    WINE=/home/user/.local/share/wine/bin/wine WINEPREFIX=/home/user/.wine install.sh
 "
 
 	return 0
@@ -69,7 +71,12 @@ function check_env() {
     readonly INSTALL_PATH="$WINEPREFIX"
   fi
 
+  if [[ -z "$WINE" ]]; then
+    readonly WINE="$(which wine)"
+  fi
+
   debug "Variable INSTALL_PATH: $INSTALL_PATH"
+  debug "Variable WINE: $WINE"
 }
 
 # Check .reg file
@@ -168,6 +175,37 @@ function prepare_release() {
   fi
 }
 
+function setup_overrides() {
+  local result=0
+
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d8 /t REG_SZ /d native /f); then
+    error "DLL override d3d8: $res"
+    result=1
+  fi
+
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d9 /t REG_SZ /d native /f); then
+    error "DLL override d3d9: $res"
+    result=1
+  fi
+
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d10core /t REG_SZ /d native /f); then
+    error "DLL override d3d10core: $res"
+    result=1
+  fi
+
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d11 /t REG_SZ /d native /f); then
+    error "DLL override d3d11: $res"
+    result=1
+  fi
+
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v dxgi /t REG_SZ /d native /f); then
+    error "DLL override dxgi: $res"
+    result=1
+  fi
+
+  return ${result}
+}
+
 function main() {
   check_env
 
@@ -200,6 +238,11 @@ function main() {
     fi
 
     status "Copy files" OK
+
+    setup_overrides
+
+    status "DLL overrides" $? || exit 1
+
     return 0
   fi
 
@@ -214,6 +257,10 @@ function main() {
   fi
 
   status "Copy files" OK
+
+  setup_overrides
+
+  status "DLL overrides" $? || exit 1
 
   return 0
 }
