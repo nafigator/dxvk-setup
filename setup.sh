@@ -50,10 +50,12 @@ $(bold)Examples:$(clr)
 # shellcheck disable=SC2034
 INTERACTIVE=1
 # shellcheck disable=SC2034
-VERSION=0.3.1
+VERSION=0.3.3
 
 parse_options "${@}"
 PARSE_RESULT=$?
+
+export WINEDEBUG=-all
 
 [[ ${PARSE_RESULT} = 1 ]] && exit 1
 [[ ${PARSE_RESULT} = 2 ]] && usage_help && exit 2
@@ -62,18 +64,15 @@ check_dependencies grep jq cut || exit 1
 
 # Check environment variable for wine prefix
 function check_env() {
-  if [[ -z "$WINEPREFIX" ]]
-  then
-    readonly INSTALL_PATH="$(pwd)"
-  else
-    readonly INSTALL_PATH="$WINEPREFIX"
+  if [[ -z "$WINEPREFIX" ]]; then
+    readonly WINEPREFIX="$(pwd)"
   fi
 
   if [[ -z "$WINE" ]]; then
     readonly WINE="$(which wine)"
   fi
 
-  debug "Variable INSTALL_PATH: $INSTALL_PATH"
+  debug "Variable WINEPREFIX: $WINEPREFIX"
   debug "Variable WINE: $WINE"
 }
 
@@ -207,9 +206,9 @@ function setup_overrides() {
 function main() {
   check_env
 
-  readonly reg_file="$INSTALL_PATH/system.reg"
-  readonly sys_path="$INSTALL_PATH/drive_c/windows/system32"
-  readonly wow_path="$INSTALL_PATH/drive_c/windows/syswow64"
+  readonly reg_file="$WINEPREFIX/system.reg"
+  readonly sys_path="$WINEPREFIX/drive_c/windows/system32"
+  readonly wow_path="$WINEPREFIX/drive_c/windows/syswow64"
 
   debug "Variable reg_file: $reg_file"
   debug "Variable sys_path: $sys_path"
