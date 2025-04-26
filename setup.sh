@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 # shellcheck source=https://raw.githubusercontent.com/nafigator/bash-helpers/1.1.4/src/bash-helpers.sh
 if [[ -x /usr/local/lib/bash/includes/bash-helpers.sh ]]; then
   . /usr/local/lib/bash/includes/bash-helpers.sh
@@ -52,7 +50,7 @@ $(bold)Examples:$(clr)
 # shellcheck disable=SC2034
 INTERACTIVE=1
 # shellcheck disable=SC2034
-VERSION=0.2.0
+VERSION=0.3.0
 
 parse_options "${@}"
 PARSE_RESULT=$?
