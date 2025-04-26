@@ -50,7 +50,7 @@ $(bold)Examples:$(clr)
 # shellcheck disable=SC2034
 INTERACTIVE=1
 # shellcheck disable=SC2034
-VERSION=0.3.0
+VERSION=0.3.1
 
 parse_options "${@}"
 PARSE_RESULT=$?
@@ -176,27 +176,27 @@ function prepare_release() {
 function setup_overrides() {
   local result=0
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d8 /t REG_SZ /d native /f); then
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d8 /t REG_SZ /d native /f 2>&1); then
     error "DLL override d3d8: $res"
     result=1
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d9 /t REG_SZ /d native /f); then
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d9 /t REG_SZ /d native /f 2>&1); then
     error "DLL override d3d9: $res"
     result=1
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d10core /t REG_SZ /d native /f); then
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d10core /t REG_SZ /d native /f 2>&1); then
     error "DLL override d3d10core: $res"
     result=1
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d11 /t REG_SZ /d native /f); then
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d11 /t REG_SZ /d native /f 2>&1); then
     error "DLL override d3d11: $res"
     result=1
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v dxgi /t REG_SZ /d native /f); then
+  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v dxgi /t REG_SZ /d native /f 2>&1); then
     error "DLL override dxgi: $res"
     result=1
   fi
