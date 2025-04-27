@@ -1,5 +1,5 @@
 # dxvk-setup
-DXVK setup fo Linux
+DXVK setup for Linux
 
 # Usage
 
