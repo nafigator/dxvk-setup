@@ -18,30 +18,31 @@ function print_version() {
 function usage_help() {
 	# shellcheck disable=SC2059
   printf "$(bold)Usage:$(clr)
-  setup.sh [OPTIONS...] [COMMAND]
+  setup.sh [OPTIONS...]
 
-$(bold)Options:$(clr)
-  -v, --version              Show script version
-  -h, --help                 Show this help message
-  -d, --debug                Run program in debug mode
-
-$(bold)Environment variables:$(clr)
-  WINEPREFIX                 Defines wine prefix to install DXVK libs. By default installs into current dir.
-
-$(bold)Description:$(clr)
+$(bold)DESCRIPTION$(clr)
   Bash script for latest DXVK libs installation into wine prefixes.
 
   As dependencies it uses curl, grep, jq, cut and bash-helpers lib. See https://github.com/nafigator/bash-helpers.
   If bash-helpers not exists in bash includes than script sources it from github.
 
-$(bold)Examples:$(clr)
+$(bold)OPTIONS$(clr)
+  -v, --version              Show script version
+  -h, --help                 Show this help message
+  -d, --debug                Run script in debug mode
+
+$(bold)ENVIRONMENT$(clr)
+  WINEPREFIX                 Defines wine prefix to install DXVK libs. By default installs into current dir.
+  WINE                       Defines path to wine binary. By default wine will be used from \$PATH.
+
+$(bold)EXAMPLES$(clr)
   Installation into current dir:
 
     cd /home/user/.wine && setup.sh
 
   Installation into defined prefix with specific wine build:
 
-    WINE=/home/user/.local/share/wine/bin/wine WINEPREFIX=/home/user/.wine install.sh
+    WINE=/home/user/.local/share/wine/bin/wine WINEPREFIX=/home/user/.wine setup.sh
 "
 
 	return 0
@@ -65,11 +66,13 @@ check_dependencies grep jq cut || exit 1
 # Check environment variable for wine prefix
 function check_env() {
   if [[ -z "$WINEPREFIX" ]]; then
-    readonly WINEPREFIX="$(pwd)"
+    WINEPREFIX="$(pwd)"
+    export WINEPREFIX
   fi
 
   if [[ -z "$WINE" ]]; then
-    readonly WINE="$(which wine)"
+    WINE="$(which wine)"
+    export WINE
   fi
 
   debug "Variable WINEPREFIX: $WINEPREFIX"
@@ -172,47 +175,57 @@ function prepare_release() {
   fi
 }
 
+# Registry overrides set up
 function setup_overrides() {
-  local result=0
+  local url=https://raw.githubusercontent.com/nafigator/dxvk-setup/refs/heads/reg-file/overrides.reg
+  local tmp_path=/tmp/dxvk-overrides.reg
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d8 /t REG_SZ /d native /f 2>&1); then
-    error "DLL override d3d8: $res"
-    result=1
+  if [[ ! -r "$tmp_path" ]]; then
+    if overrides_resp="$(curl -sS -f --fail-early -o "$tmp_path" "$url" 2>&1)"; then
+      debug "Variable overrides_resp: $overrides_resp"
+    else
+      error "Overrides reg-file download error: $overrides_resp"
+      exit 1
+    fi
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d9 /t REG_SZ /d native /f 2>&1); then
-    error "DLL override d3d9: $res"
-    result=1
+  if ! res=$("$WINE" regedit "$tmp_path" 2>&1); then
+    error "DLL overrides: $res"
+    exit 1
+  fi
+}
+
+# Copy files into 32-bits prefix
+function copy_pfx_32() {
+  if ! res=$(cp "$RELEASE_PATH"/x32/*.dll "$SYS_PATH" 2>&1); then
+    error "Copy failure: $res"
+    exit 1
+  fi
+}
+
+# Copy files into 64-bits prefix
+function copy_pfx_64() {
+  if ! res64=$(cp "$RELEASE_PATH"/x64/*.dll "$SYS_PATH" 2>&1); then
+    error "Copy x64 files failure: $res64"
+    exit 1
   fi
 
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d10core /t REG_SZ /d native /f 2>&1); then
-    error "DLL override d3d10core: $res"
-    result=1
+  if ! res32=$(cp "$RELEASE_PATH"/x32/*.dll "$WOW_PATH" 2>&1); then
+    error "Copy x32 files failure: $res32"
+    exit 1
   fi
-
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v d3d11 /t REG_SZ /d native /f 2>&1); then
-    error "DLL override d3d11: $res"
-    result=1
-  fi
-
-  if ! res=$("$WINE" reg ADD 'HKCU\Software\Wine\DllOverrides' /v dxgi /t REG_SZ /d native /f 2>&1); then
-    error "DLL override dxgi: $res"
-    result=1
-  fi
-
-  return ${result}
 }
 
 function main() {
   check_env
 
   readonly reg_file="$WINEPREFIX/system.reg"
-  readonly sys_path="$WINEPREFIX/drive_c/windows/system32"
-  readonly wow_path="$WINEPREFIX/drive_c/windows/syswow64"
+  readonly SYS_PATH="$WINEPREFIX/drive_c/windows/system32"
+  readonly WOW_PATH="$WINEPREFIX/drive_c/windows/syswow64"
 
   debug "Variable reg_file: $reg_file"
-  debug "Variable sys_path: $sys_path"
-  debug "Variable wow_path: $wow_path"
+  debug "Variable SYS_PATH: $SYS_PATH"
+  debug "Variable WOW_PATH: $WOW_PATH"
 
   check_reg_file "$reg_file"
   find_prefix_bits "$reg_file"
@@ -229,35 +242,16 @@ function main() {
 
   # Copy files
   if [[ "$SYSTEM_BITS" -eq 32 ]]; then
-    if ! cp_res=$(cp "$RELEASE_PATH"/x32/*.dll "$sys_path" 2>&1); then
-      error "Copy failure: $cp_res"
-      exit 1
-    fi
-
-    status "Copy files" OK
-
-    setup_overrides
-
-    status "DLL overrides" $? || exit 1
-
-    return 0
-  fi
-
-  if ! cp_res=$(cp "$RELEASE_PATH"/x64/*.dll "$sys_path" 2>&1); then
-    error "Copy x64 files failure: $cp_res"
-    exit 1
-  fi
-
-  if ! cp_res=$(cp "$RELEASE_PATH"/x32/*.dll "$wow_path" 2>&1); then
-    error "Copy x32 files failure: $cp_res"
-    exit 1
+    copy_pfx_32
+  else
+    copy_pfx_64
   fi
 
   status "Copy files" OK
 
   setup_overrides
 
-  status "DLL overrides" $? || exit 1
+  status "DLL overrides" OK
 
   return 0
 }
