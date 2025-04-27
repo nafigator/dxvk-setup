@@ -51,7 +51,7 @@ $(bold)EXAMPLES$(clr)
 # shellcheck disable=SC2034
 INTERACTIVE=1
 # shellcheck disable=SC2034
-VERSION=0.3.3
+VERSION=0.4.0
 
 parse_options "${@}"
 PARSE_RESULT=$?
