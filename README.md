@@ -5,16 +5,16 @@ DXVK setup for Linux
 
 ```shell
 SYNOPSIS
-       setup.sh [OPTIONS...]
+  setup.sh [OPTIONS...]
 
 OPTIONS
-       -v, --version    Show script version
-       -h, --help       Show this help message
-       -d, --debug      Run script in debug mode
+  -v, --version    Show script version
+  -h, --help       Show this help message
+  -d, --debug      Run script in debug mode
 
 ENVIRONMENT
-       WINEPREFIX       Defines wine prefix to install DXVK libs. By default installs into current dir.
-       WINE             Defines path to wine binary. By default wine will be used from $PATH.
+  WINEPREFIX       Defines wine prefix to install DXVK libs. By default installs into current dir.
+  WINE             Defines path to wine binary. By default wine will be used from $PATH.
 ```
 
 # Examples
@@ -46,5 +46,17 @@ curl -H 'Cache-Control: no-cache, no-store' \
 WINE=/usr/bin/wine \
 WINEPREFIX=~/.local/share/games/my-pfx \
 bash
+```
+</details>
+
+<details>
+  <summary>Remote script usage with params</summary>
+
+```shell
+curl -H 'Cache-Control: no-cache, no-store' \
+  -s https://raw.githubusercontent.com/nafigator/dxvk-setup/refs/heads/main/setup.sh | \
+WINE=/usr/bin/wine \
+WINEPREFIX=~/.local/share/games/my-pfx \
+bash -s - -dh
 ```
 </details>
