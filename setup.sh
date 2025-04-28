@@ -32,7 +32,7 @@ $(bold)OPTIONS$(clr)
   -d, --debug                Run script in debug mode
 
 $(bold)ENVIRONMENT$(clr)
-  WINEPREFIX                 Defines wine prefix to install DXVK libs. By default installs into current dir.
+  WINEPREFIX                 Defines wine prefix to install DXVK libs. By default current dir will be treated as prefix.
   WINE                       Defines path to wine binary. By default wine will be used from \$PATH.
 
 $(bold)EXAMPLES$(clr)

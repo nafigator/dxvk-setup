@@ -8,13 +8,13 @@ SYNOPSIS
   setup.sh [OPTIONS...]
 
 OPTIONS
-  -v, --version    Show script version
-  -h, --help       Show this help message
-  -d, --debug      Run script in debug mode
+  -v, --version   Show script version
+  -h, --help      Show this help message
+  -d, --debug     Run script in debug mode
 
 ENVIRONMENT
-  WINEPREFIX       Defines wine prefix to install DXVK libs. By default installs into current dir.
-  WINE             Defines path to wine binary. By default wine will be used from $PATH.
+  WINEPREFIX      Defines wine prefix to install DXVK libs. By default current dir will be treated as prefix.
+  WINE            Defines path to wine binary. By default wine will be used from $PATH.
 ```
 
 # Examples
