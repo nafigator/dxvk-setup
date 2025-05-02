@@ -1,5 +1,5 @@
 # dxvk-setup
-DXVK setup for Linux
+[DXVK][dxvk url] setup for Linux
 
 # Usage
 
@@ -60,3 +60,5 @@ WINEPREFIX=~/.local/share/games/my-pfx \
 bash -s - -dh
 ```
 </details>
+
+[dxvk url]: https://github.com/doitsujin/dxvk
