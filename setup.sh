@@ -177,7 +177,7 @@ function prepare_release() {
 
 # Registry overrides set up
 function setup_overrides() {
-  local url=https://raw.githubusercontent.com/nafigator/dxvk-setup/refs/heads/reg-file/overrides.reg
+  local url=https://raw.githubusercontent.com/nafigator/dxvk-setup/refs/heads/main/overrides.reg
   local tmp_path=/tmp/dxvk-overrides.reg
 
   if [[ ! -r "$tmp_path" ]]; then
